@@ -30,6 +30,7 @@ jspm_packages/
 !.env.example
 
 # Build outputs
+build/
 build/Release
 dist
 .next

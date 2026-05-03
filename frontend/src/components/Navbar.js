@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import AddAlertIcon from '@mui/icons-material/AddAlert';
 function Navbar() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -17,6 +18,16 @@ function Navbar() {
           ERP Notifications
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Button color="inherit" onClick={() => navigate('/dashboard')}>
+            Dashboard
+          </Button>
+          <Button
+            color="inherit"
+            startIcon={<AddAlertIcon />}
+            onClick={() => navigate('/alerts/create')}
+          >
+            Créer une Alerte
+          </Button>
           <Typography variant="body1">
             {user.name || 'Utilisateur'}
           </Typography>

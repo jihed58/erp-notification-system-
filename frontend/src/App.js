@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import CreateAlertPage from './pages/CreateAlertPage';
 import ProtectedRoute from './components/ProtectedRoute';
 function App() {
   return (
@@ -16,6 +17,22 @@ function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/alerts/create"
+          element={
+            <ProtectedRoute>
+              <CreateAlertPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/alerts/edit/:id"
+          element={
+            <ProtectedRoute>
+              <CreateAlertPage />
             </ProtectedRoute>
           }
         />
