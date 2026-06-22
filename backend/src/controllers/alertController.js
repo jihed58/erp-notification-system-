@@ -1,11 +1,41 @@
 const AlertRule = require('../models/AlertRule');
+const User = require('../models/User');
 
-// GET /api/alerts — Liste toutes les alertes de l'utilisateur connecté
+/**
+ * GET /api/alerts — List alerts based on role:
+ * - erp_manager: ALL alerts across all departments
+ * - admin: alerts from users in their department + their own
+ * - user: only their own alerts
+ */
 const getAlerts = async (req, res) => {
   try {
-    const alerts = await AlertRule.find({ user: req.user.id }).sort({
-      createdAt: -1,
-    });
+    let filter = {};
+
+    if (req.user.role === 'erp_manager') {
+      // ERP Manager sees everything
+      filter = {};
+    } else if (req.user.role === 'admin') {
+      // Admin sees alerts from their department users + their own
+      const departmentUsers = await User.find({
+        department: req.user.department,
+        status: 'active',
+      }).select('_id');
+      const userIds = departmentUsers.map((u) => u._id);
+
+      // Include the admin's own alerts too
+      if (!userIds.some((id) => id.toString() === req.user.id)) {
+        userIds.push(req.user.id);
+      }
+      filter = { user: { $in: userIds } };
+    } else {
+      // Regular user sees only their own alerts
+      filter = { user: req.user.id };
+    }
+
+    const alerts = await AlertRule.find(filter)
+      .populate('user', 'name email department')
+      .sort({ createdAt: -1 });
+
     res.json(alerts);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -15,7 +45,7 @@ const getAlerts = async (req, res) => {
 // POST /api/alerts — Créer une nouvelle alerte
 const createAlert = async (req, res) => {
   try {
-    const { name, module, targetType, targetValue, conditions, logicOperator, isActive } = req.body;
+    const { name, module, targetType, targetValue, targetLabel, conditions, logicOperator, isActive, severity } = req.body;
 
     // Validation des champs requis
     if (!name || !module || !targetType || !targetValue) {
@@ -45,9 +75,11 @@ const createAlert = async (req, res) => {
       module,
       targetType,
       targetValue,
+      targetLabel: targetLabel || '',
       conditions,
       logicOperator: logicOperator || 'AND',
       isActive: isActive !== undefined ? isActive : true,
+      severity: severity || 'low',
     });
 
     res.status(201).json(alert);
@@ -56,7 +88,12 @@ const createAlert = async (req, res) => {
   }
 };
 
-// PUT /api/alerts/:id — Modifier une alerte existante
+/**
+ * PUT /api/alerts/:id — Modifier une alerte existante
+ * - erp_manager: can update any alert
+ * - admin: can update alerts in their department
+ * - user: can update only their own alerts
+ */
 const updateAlert = async (req, res) => {
   try {
     const alert = await AlertRule.findById(req.params.id);
@@ -65,12 +102,25 @@ const updateAlert = async (req, res) => {
       return res.status(404).json({ message: 'Alert not found' });
     }
 
-    // Vérifier que l'alerte appartient à l'utilisateur connecté
-    if (alert.user.toString() !== req.user.id) {
+    // Authorization check based on role
+    if (req.user.role === 'user' && alert.user.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized to update this alert' });
     }
 
-    const { name, module, targetType, targetValue, conditions, logicOperator, isActive } = req.body;
+    if (req.user.role === 'admin') {
+      // Admin can update alerts from users in their department
+      const alertOwner = await User.findById(alert.user);
+      if (
+        alertOwner &&
+        alertOwner.department !== req.user.department &&
+        alert.user.toString() !== req.user.id
+      ) {
+        return res.status(403).json({ message: 'Not authorized to update alerts outside your department' });
+      }
+    }
+    // erp_manager can update any alert — no check needed
+
+    const { name, module, targetType, targetValue, conditions, logicOperator, isActive, severity } = req.body;
 
     // Mettre à jour uniquement les champs fournis
     if (name !== undefined) alert.name = name;
@@ -80,6 +130,7 @@ const updateAlert = async (req, res) => {
     if (conditions !== undefined) alert.conditions = conditions;
     if (logicOperator !== undefined) alert.logicOperator = logicOperator;
     if (isActive !== undefined) alert.isActive = isActive;
+    if (severity !== undefined) alert.severity = severity;
 
     const updatedAlert = await alert.save();
     res.json(updatedAlert);
@@ -88,7 +139,12 @@ const updateAlert = async (req, res) => {
   }
 };
 
-// DELETE /api/alerts/:id — Supprimer une alerte
+/**
+ * DELETE /api/alerts/:id — Supprimer une alerte
+ * - erp_manager: can delete any alert
+ * - admin: can delete alerts in their department
+ * - user: can delete only their own alerts
+ */
 const deleteAlert = async (req, res) => {
   try {
     const alert = await AlertRule.findById(req.params.id);
@@ -97,10 +153,22 @@ const deleteAlert = async (req, res) => {
       return res.status(404).json({ message: 'Alert not found' });
     }
 
-    // Vérifier que l'alerte appartient à l'utilisateur connecté
-    if (alert.user.toString() !== req.user.id) {
+    // Authorization check based on role
+    if (req.user.role === 'user' && alert.user.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized to delete this alert' });
     }
+
+    if (req.user.role === 'admin') {
+      const alertOwner = await User.findById(alert.user);
+      if (
+        alertOwner &&
+        alertOwner.department !== req.user.department &&
+        alert.user.toString() !== req.user.id
+      ) {
+        return res.status(403).json({ message: 'Not authorized to delete alerts outside your department' });
+      }
+    }
+    // erp_manager can delete any alert — no check needed
 
     await AlertRule.findByIdAndDelete(req.params.id);
     res.json({ message: 'Alert deleted successfully' });

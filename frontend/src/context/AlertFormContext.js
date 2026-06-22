@@ -6,11 +6,13 @@ const initialState = {
   module: '',
   targetType: '',
   targetValue: '',
+  targetLabel: '',
   alertName: '',
   conditions: [
     { id: Date.now(), field: '', operator: '', value: '' }
   ],
   logicOperator: 'AND',
+  severity: 'low',
   isActive: true,
   errors: {},
 };
@@ -38,8 +40,14 @@ function alertFormReducer(state, action) {
     case 'SET_TARGET_VALUE':
       return { ...state, targetValue: action.payload };
 
+    case 'SET_TARGET_LABEL':
+      return { ...state, targetLabel: action.payload };
+
     case 'SET_LOGIC_OPERATOR':
       return { ...state, logicOperator: action.payload };
+
+    case 'SET_SEVERITY':
+      return { ...state, severity: action.payload };
 
     case 'SET_ACTIVE':
       return { ...state, isActive: action.payload };
@@ -81,6 +89,7 @@ function alertFormReducer(state, action) {
         targetType: '',
         targetValue: '',
         conditions: [{ id: Date.now(), field: '', operator: '', value: '' }],
+        severity: 'low',
       };
 
     case 'LOAD_ALERT':

@@ -1,13 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Container, Grid, Paper, Box, Button } from '@mui/material';
+import { Typography, Container, Grid, Paper, Box, Button, Chip } from '@mui/material';
 import AddAlertIcon from '@mui/icons-material/AddAlert';
 import Navbar from '../components/Navbar';
 import AlertList from '../components/alerts/AlertList';
 import { getAlerts } from '../services/alertService';
+import { useAuth } from '../context/AuthContext';
 
 function DashboardPage() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { user, isManager, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [alerts, setAlerts] = useState([]);
 
@@ -34,9 +35,18 @@ function DashboardPage() {
     <>
       <Navbar />
       <Container sx={{ mt: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Bienvenue, {user.name} 👋
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+          <Typography variant="h4">
+            Bienvenue, {user?.name} 👋
+          </Typography>
+          {(isManager() || isAdmin()) && (
+            <Chip
+              label={isManager() ? 'Vue globale' : `Département: ${user?.department}`}
+              color={isManager() ? 'error' : 'warning'}
+              size="small"
+            />
+          )}
+        </Box>
 
         <Box sx={{ mb: 3 }}>
           <Button

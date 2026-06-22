@@ -12,39 +12,36 @@ export const ERP_MODULES = [
 
 export const MODULE_FIELDS = {
   stock: [
-    { value: 'quantite',        label: 'Quantité en stock',   type: 'number' },
-    { value: 'stock_minimum',   label: 'Stock minimum',       type: 'number' },
-    { value: 'date_peremption', label: 'Date de péremption',  type: 'date' },
-    { value: 'reference',       label: 'Référence produit',   type: 'text' },
+    { value: 'prix',            label: 'Prix unitaire',       type: 'number' },
+    { value: 'tempsClient',     label: 'Temps client (min)',  type: 'number' },
+    { value: 'etat',            label: 'État (1=actif, 0=inactif)', type: 'number' },
   ],
   crm: [
-    { value: 'montant_deal',   label: 'Montant du deal',     type: 'number' },
-    { value: 'statut_lead',    label: 'Statut du lead',      type: 'text' },
-    { value: 'date_relance',   label: 'Date de relance',     type: 'date' },
-    { value: 'nom_client',     label: 'Nom du client',       type: 'text' },
+    { value: 'solde',           label: 'Solde client',        type: 'number' },
+    { value: 'chiffre',         label: "Chiffre d'affaires",  type: 'number' },
+    { value: 'reglements',      label: 'Réglements client',   type: 'number' },
   ],
   facturation: [
-    { value: 'montant_facture', label: 'Montant facture',     type: 'number' },
-    { value: 'statut_paiement', label: 'Statut de paiement', type: 'text' },
-    { value: 'date_echeance',   label: "Date d'échéance",    type: 'date' },
-    { value: 'montant_depasse', label: 'Montant dépassé',    type: 'number' },
+    { value: 'resteReglemnt',   label: 'Reste à régler',      type: 'number' },
+    { value: 'etatReglement',   label: 'État règlement (0=non, 1=partiel, 2=réglé)', type: 'number' },
+    { value: 'acquittE',        label: 'Acquitté (0=non, 1=oui)', type: 'number' },
+    { value: 'dateFacture',     label: 'Date de la facture',  type: 'date' },
   ],
   gmao: [
-    { value: 'heures_machine',   label: 'Heures machine',        type: 'number' },
-    { value: 'date_maintenance', label: 'Prochaine maintenance', type: 'date' },
-    { value: 'niveau_criticite', label: 'Niveau de criticité',  type: 'number' },
-    { value: 'equipement',       label: 'Nom équipement',        type: 'text' },
+    { value: 'criticite',       label: 'Criticité machine',   type: 'number' },
+    { value: 'etatActuel',      label: 'État actuel (1=service, 0=arrêt)', type: 'number' },
+    { value: 'dureeVie',        label: 'Durée de vie (h)',    type: 'number' },
   ],
   rh: [
-    { value: 'jours_conge',     label: 'Jours de congé restants', type: 'number' },
-    { value: 'date_contrat',    label: 'Fin de contrat',          type: 'date' },
-    { value: 'nom_employe',     label: "Nom de l'employé",        type: 'text' },
+    { value: 'etat',            label: 'État employé (0=inactif, 1=actif)', type: 'number' },
+    { value: 'allure',          label: 'Allure',              type: 'number' },
+    { value: 'discipline',      label: 'Discipline',          type: 'number' },
+    { value: 'dateFinContrat',  label: 'Date fin de contrat', type: 'date' },
   ],
   achats: [
-    { value: 'montant_commande', label: 'Montant commande',      type: 'number' },
-    { value: 'date_livraison',   label: 'Date de livraison',     type: 'date' },
-    { value: 'fournisseur',      label: 'Fournisseur',           type: 'text' },
-    { value: 'statut_commande',  label: 'Statut commande',       type: 'text' },
+    { value: 'solde',           label: 'Solde fournisseur',   type: 'number' },
+    { value: 'chiffre',         label: "Chiffre d'affaires",  type: 'number' },
+    { value: 'note',            label: 'Note fournisseur',    type: 'number' },
   ],
 };
 
@@ -123,4 +120,18 @@ export const OPERATOR_LABELS = {
   lte: 'est inférieur ou égal à',
   neq: 'est différent de',
   contains: 'contient',
+};
+
+/**
+ * DYNAMIC_TARGETS — defines which module+targetType combos load from the DB.
+ * To enable a dropdown for a new module, add an entry here.
+ * The value must match the `erpTargetConfig.js` keys on the backend.
+ */
+export const DYNAMIC_TARGETS = {
+  rh: ['employe', 'departement'],
+  facturation: ['facture', 'client'],
+  crm: ['client'],
+  gmao: ['equipement', 'site'],
+  stock: ['produit'],
+  achats: ['fournisseur'],
 };

@@ -20,6 +20,7 @@ const alertRuleSchema = new mongoose.Schema(
     module: { type: String, required: true },
     targetType: { type: String, required: true },
     targetValue: { type: String, required: true },
+    targetLabel: { type: String, default: '' },
     conditions: {
       type: [conditionSchema],
       validate: [(val) => val.length > 0, 'At least one condition is required'],
@@ -28,6 +29,11 @@ const alertRuleSchema = new mongoose.Schema(
       type: String,
       enum: ['AND', 'OR'],
       default: 'AND',
+    },
+    severity: {
+      type: String,
+      enum: ['low', 'high', 'critical'],
+      default: 'low',
     },
     isActive: { type: Boolean, default: true },
   },

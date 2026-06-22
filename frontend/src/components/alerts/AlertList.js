@@ -3,18 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Paper, IconButton, Chip, Switch, Tooltip,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  Button, List, ListItem, ListItemText, Divider,
+  Button, List, ListItem, ListItemText, Divider, Snackbar, Alert,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RuleIcon from '@mui/icons-material/Rule';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import { ERP_MODULES, MODULE_FIELDS, MODULE_TARGETS, OPERATOR_LABELS } from '../../config/alertConfig';
 import { deleteAlert, updateAlert } from '../../services/alertService';
+import { simulateAlert } from '../../services/notificationService';
 
 function AlertList({ alerts, onRefresh }) {
   const navigate = useNavigate();
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [popup, setPopup] = useState({ open: false, title: '', message: '' });
 
   // Trouver le label du module
   const getModuleLabel = (moduleId) => {
@@ -68,15 +73,20 @@ function AlertList({ alerts, onRefresh }) {
     navigate(`/alerts/edit/${id}`);
   };
 
-  if (alerts.length === 0) {
-    return (
-      <Paper sx={{ p: 4, textAlign: 'center', mt: 3 }}>
-        <Typography color="text.secondary">
-          Aucune alerte configurée. Créez votre première alerte !
-        </Typography>
-      </Paper>
-    );
-  }
+  const handleSimulate = async (id) => {
+    try {
+      await simulateAlert(id);
+      setPopup({ 
+        open: true, 
+        title: 'Alerte déclenchée !', 
+        message: 'Les conditions de cette alerte ont été remplies. Elle a été déclenchée, supprimée de vos règles actives, et transférée dans votre boîte de Notifications.' 
+      });
+      onRefresh(); // Refresh list to remove the deleted alert
+      window.dispatchEvent(new Event('notification_updated'));
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Erreur lors de la simulation.', severity: 'error' });
+    }
+  };
 
   return (
     <Box sx={{ mt: 3 }}>
@@ -84,8 +94,15 @@ function AlertList({ alerts, onRefresh }) {
         Mes alertes
       </Typography>
 
-      {alerts.map((alert) => (
-        <Paper
+      {alerts.length === 0 ? (
+        <Paper sx={{ p: 4, textAlign: 'center', mt: 3 }}>
+          <Typography color="text.secondary">
+            Aucune alerte configurée. Créez votre première alerte !
+          </Typography>
+        </Paper>
+      ) : (
+        alerts.map((alert) => (
+          <Paper
           key={alert._id}
           sx={{
             p: 3,
@@ -114,10 +131,20 @@ function AlertList({ alerts, onRefresh }) {
               )}
               {alert.targetType && (
                 <Chip
-                  label={`${getTargetLabel(alert.module, alert.targetType)} : ${alert.targetValue || '—'}`}
+                  label={`${getTargetLabel(alert.module, alert.targetType)} : ${alert.targetLabel || alert.targetValue || '—'}`}
                   size="small"
                   color="secondary"
                   variant="outlined"
+                />
+              )}
+              {alert.severity && (
+                <Chip
+                  label={alert.severity.toUpperCase()}
+                  size="small"
+                  color={
+                    alert.severity === 'critical' ? 'error' :
+                    alert.severity === 'high' ? 'warning' : 'default'
+                  }
                 />
               )}
             </Box>
@@ -141,6 +168,17 @@ function AlertList({ alerts, onRefresh }) {
                   size="small"
                 >
                   <EditIcon />
+                </IconButton>
+              </Tooltip>
+
+              {/* Bouton simuler */}
+              <Tooltip title="Simuler (Test)">
+                <IconButton
+                  onClick={() => handleSimulate(alert._id)}
+                  color="warning"
+                  size="small"
+                >
+                  <BugReportIcon />
                 </IconButton>
               </Tooltip>
 
@@ -180,7 +218,7 @@ function AlertList({ alerts, onRefresh }) {
             })}
           </Typography>
         </Paper>
-      ))}
+      )))}
 
       {/* Dialogue de confirmation de suppression */}
       <Dialog
@@ -199,6 +237,45 @@ function AlertList({ alerts, onRefresh }) {
           </Button>
           <Button onClick={handleDelete} color="error" disabled={deleting}>
             {deleting ? 'Suppression...' : 'Supprimer'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+      >
+        <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
+      </Snackbar>
+
+      {/* Pop-up de message (Alerte déclenchée) */}
+      <Dialog
+        open={popup.open}
+        onClose={() => setPopup((p) => ({ ...p, open: false }))}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <NotificationsActiveIcon color="primary" />
+          {popup.title}
+        </DialogTitle>
+        <Divider />
+        <DialogContent>
+          <DialogContentText sx={{ mt: 1, fontSize: '1.1rem' }}>
+            {popup.message}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setPopup((p) => ({ ...p, open: false }))} color="inherit">
+            Fermer
+          </Button>
+          <Button 
+            onClick={() => navigate('/notifications')} 
+            variant="contained" 
+            color="primary"
+          >
+            Aller aux Notifications
           </Button>
         </DialogActions>
       </Dialog>

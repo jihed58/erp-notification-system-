@@ -12,7 +12,7 @@ const protect = (req, res, next) => {
   try {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { id, role, iat, exp }
+    req.user = decoded; // { id, role, department, iat, exp }
     next();
   } catch (err) {
     return res.status(401).json({ message: 'Not authorized – invalid token' });
@@ -20,14 +20,15 @@ const protect = (req, res, next) => {
 };
 
 /**
- * Middleware that restricts access to admin-only routes.
+ * Middleware factory: restricts access to specific roles.
+ * Usage: authorize('erp_manager', 'admin')
  * Must be used AFTER the protect middleware.
  */
-const adminOnly = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    return next();
+const authorize = (...roles) => (req, res, next) => {
+  if (!req.user || !roles.includes(req.user.role)) {
+    return res.status(403).json({ message: 'Forbidden – insufficient permissions' });
   }
-  return res.status(403).json({ message: 'Forbidden – admin access required' });
+  next();
 };
 
-module.exports = { protect, adminOnly };
+module.exports = { protect, authorize };
