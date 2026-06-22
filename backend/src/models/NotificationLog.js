@@ -1,3 +1,5 @@
+const { getSystemDB } = require('../config/db');
+
 const mongoose = require('mongoose');
 
 const notificationLogSchema = new mongoose.Schema(
@@ -45,4 +47,5 @@ const notificationLogSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('NotificationLog', notificationLogSchema);
+// Use the systemDB connection (erp-system database)
+module.exports = getSystemDB().model('NotificationLog', notificationLogSchema);

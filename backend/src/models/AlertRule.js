@@ -1,3 +1,5 @@
+const { getSystemDB } = require('../config/db');
+
 const mongoose = require('mongoose');
 
 const conditionSchema = new mongoose.Schema(
@@ -40,4 +42,5 @@ const alertRuleSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('AlertRule', alertRuleSchema);
+// Use the systemDB connection (erp-system database)
+module.exports = getSystemDB().model('AlertRule', alertRuleSchema);

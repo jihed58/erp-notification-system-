@@ -1,3 +1,5 @@
+const { getSystemDB } = require('../config/db');
+
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -22,4 +24,5 @@ const userSchema = new mongoose.Schema({
   mustChangePassword: { type: Boolean, default: false },
 }, { timestamps: true });
 
-module.exports = mongoose.model('User', userSchema);
+// Use the systemDB connection (erp-system database)
+module.exports = getSystemDB().model('User', userSchema);

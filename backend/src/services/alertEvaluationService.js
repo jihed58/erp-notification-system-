@@ -2,7 +2,7 @@ const NotificationLog = require('../models/NotificationLog');
 const AlertRule = require('../models/AlertRule');
 const User = require('../models/User');
 const { sendAlertEmail } = require('./emailService');
-const mongoose = require('mongoose');
+const { getErpDataDB } = require('../config/db');
 
 /**
  * Evaluate a single condition against a data document.
@@ -159,7 +159,8 @@ async function evaluateAlerts() {
     const rules = await AlertRule.find({ isActive: true });
     if (rules.length === 0) return;
 
-    const db = mongoose.connection.db;
+    // ✅ Query ERP data database (erp-notif) for real data
+    const db = getErpDataDB().db;
 
     for (const rule of rules) {
       try {

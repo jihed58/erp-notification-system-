@@ -1,9 +1,10 @@
-const mongoose = require('mongoose');
+const { getErpDataDB } = require('../config/db');
 const ERP_TARGET_CONFIG = require('../config/erpTargetConfig');
 
 /**
  * GET /api/erp/targets?module=rh&targetType=employe
- * Generic endpoint — reads the config and queries the right collection.
+ * Generic endpoint — reads the config and queries the right collection
+ * from the ERP data database (erp-notif).
  * No new controller needed when adding a new module.
  */
 const getTargets = async (req, res) => {
@@ -31,7 +32,8 @@ const getTargets = async (req, res) => {
     projection[valueField] = 1;
     labelFields.forEach(f => { projection[f] = 1; });
 
-    const db = mongoose.connection.db;
+    // ✅ Query the ERP data database (erp-notif), NOT the system database
+    const db = getErpDataDB().db;
     const docs = await db.collection(collection)
       .find(filter || {})
       .project(projection)

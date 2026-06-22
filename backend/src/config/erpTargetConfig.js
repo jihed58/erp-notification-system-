@@ -1,20 +1,3 @@
-/**
- * ERP TARGET CONFIG — Generic mapping
- * For each module + targetType, define which MongoDB collection to query
- * and how to build the dropdown label.
- *
- * To add a new module: just add an entry here. No new files needed.
- *
- * Structure:
- * {
- *   collection: 'mongodb_collection_name',
- *   valueField: 'field used as the option value (ID)',
- *   labelFields: ['field1', 'field2'],  // joined with a space
- *   sortField: 'field to sort by',
- *   filter: {},  // optional MongoDB filter
- *   limit: 500,
- * }
- */
 const ERP_TARGET_CONFIG = {
   rh: {
     employe: {

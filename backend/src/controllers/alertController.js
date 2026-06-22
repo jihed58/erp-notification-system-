@@ -89,10 +89,7 @@ const createAlert = async (req, res) => {
 };
 
 /**
- * PUT /api/alerts/:id — Modifier une alerte existante
- * - erp_manager: can update any alert
- * - admin: can update alerts in their department
- * - user: can update only their own alerts
+  Modifier une alerte existante
  */
 const updateAlert = async (req, res) => {
   try {
@@ -140,10 +137,7 @@ const updateAlert = async (req, res) => {
 };
 
 /**
- * DELETE /api/alerts/:id — Supprimer une alerte
- * - erp_manager: can delete any alert
- * - admin: can delete alerts in their department
- * - user: can delete only their own alerts
+  Supprimer une alerte
  */
 const deleteAlert = async (req, res) => {
   try {

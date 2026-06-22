@@ -1,6 +1,8 @@
+const { getErpDataDB } = require('../config/db');
+
 const mongoose = require('mongoose');
 
-// Read-only model pointing to the `departement` collection in erp-notif DB
+// Points to the `departement` collection in erp-notif (ERP data database – read-only)
 const departementSchema = new mongoose.Schema({
   idDepartement: Number,
   departement: String,
@@ -8,4 +10,4 @@ const departementSchema = new mongoose.Schema({
   etat: Number,
 }, { collection: 'departement' });
 
-module.exports = mongoose.model('Departement', departementSchema);
+module.exports = getErpDataDB().model('Departement', departementSchema);
